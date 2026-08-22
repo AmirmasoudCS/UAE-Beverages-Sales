@@ -1,140 +1,462 @@
 
 source("scripts/00_setup.R")
-df <- readRDS(file.path(data_dir, "clean_sales.rds"))
 
-# --- Summary statistics -------------------------------------------------
-df %>%
+# ==============================================================================
+# 1. Load cleaned data
+# ==============================================================================
+
+df <- readRDS(
+  file.path(data_dir, "clean_sales.rds")
+)
+
+message(
+  "Loaded cleaned dataset: ",
+  nrow(df),
+  " rows × ",
+  ncol(df),
+  " columns"
+)
+
+
+# ==============================================================================
+# 2. Dataset overview
+# ==============================================================================
+
+# Basic descriptive statistics for the main numerical variables.
+
+overview_stats <- df %>%
   summarise(
-    Total_Sales = sum(Sales),
-    Total_Net_Sales = sum(Net_Sales),
-    Avg_Price = mean(Price),
-    Avg_Quantity = mean(Quantity),
-    Avg_Rating = mean(Rating),
-    Avg_Discount_Pct = mean(`Discount_%`)
+    Transactions = n(),
+
+    Total_Sales = sum(Sales, na.rm = TRUE),
+    Total_Net_Sales = sum(Net_Sales, na.rm = TRUE),
+    Total_Discount = sum(Discount_Amount, na.rm = TRUE),
+
+    Avg_Price = mean(Price, na.rm = TRUE),
+    Median_Price = median(Price, na.rm = TRUE),
+
+    Avg_Quantity = mean(Quantity, na.rm = TRUE),
+    Median_Quantity = median(Quantity, na.rm = TRUE),
+
+    Avg_Net_Sales = mean(Net_Sales, na.rm = TRUE),
+    Median_Net_Sales = median(Net_Sales, na.rm = TRUE),
+
+    Avg_Rating = mean(Rating, na.rm = TRUE)
   )
 
-df %>%
-  select(Price, Quantity, Sales, Net_Sales, `Discount_%`, Rating) %>%
+print(overview_stats)
+
+
+# Detailed numerical summary
+numeric_summary <- df %>%
+  select(
+    Price,
+    Quantity,
+    Sales,
+    Discount_Pct,
+    Discount_Amount,
+    Net_Sales,
+    Rating
+  ) %>%
   summary()
 
-# --- Sales by Category ---------------------------------------------------
-p_category_sales <- df %>%
-  group_by(Category) %>%
-  summarise(Total_Sales = sum(Sales)) %>%
-  ggplot(aes(x = reorder(Category, Total_Sales), y = Total_Sales)) +
-  geom_col(fill = "steelblue") +
-  coord_flip() +
-  labs(title = "Total Sales by Category", x = "Category", y = "Total Sales (AED)") +
-  scale_y_continuous(labels = comma)
-ggsave(file.path(plots_dir, "sales_by_category.png"), p_category_sales, width = 8, height = 5)
+print(numeric_summary)
 
-# --- Quantity by Category -------------------------------------------------
-p_category_qty <- df %>%
-  group_by(Category) %>%
-  summarise(Total_Qty = sum(Quantity)) %>%
-  ggplot(aes(x = reorder(Category, Total_Qty), y = Total_Qty)) +
-  geom_col(fill = "darkorange") +
-  coord_flip() +
-  labs(title = "Total Quantity Sold by Category", x = "Category", y = "Total Quantity (units)") +
-  scale_y_continuous(labels = comma)
-ggsave(file.path(plots_dir, "quantity_by_category.png"), p_category_qty, width = 8, height = 5)
 
-# --- Sales by Store_Type -------------------------------------------------
-p_store_sales <- df %>%
+# ==============================================================================
+# 3. Dataset composition
+# ==============================================================================
+
+# These summaries help us understand whether the categorical groups are
+# reasonably balanced before comparing them.
+
+category_counts <- df %>%
+  count(Category, sort = TRUE)
+
+city_counts <- df %>%
+  count(City, sort = TRUE)
+
+store_counts <- df %>%
+  count(Store_Type, sort = TRUE)
+
+gender_counts <- df %>%
+  count(Gender, sort = TRUE)
+
+print(category_counts)
+print(city_counts)
+print(store_counts)
+print(gender_counts)
+
+
+# ==============================================================================
+# 4. Sales by Category
+# ==============================================================================
+
+category_sales <- df %>%
+  group_by(Category) %>%
+  summarise(
+    Transactions = n(),
+    Total_Net_Sales = sum(Net_Sales, na.rm = TRUE),
+    Avg_Net_Sales = mean(Net_Sales, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  arrange(Total_Net_Sales)
+
+p_category_sales <- ggplot(
+  category_sales,
+  aes(
+    x = reorder(Category, Total_Net_Sales),
+    y = Total_Net_Sales
+  )
+) +
+  geom_col() +
+  coord_flip() +
+  scale_y_continuous(labels = comma) +
+  labs(
+    title = "Net Sales by Product Category",
+    subtitle = "Total revenue after discounts",
+    x = "Category",
+    y = "Net Sales (AED)"
+  ) +
+  theme_minimal()
+
+ggsave(
+  file.path(plots_dir, "net_sales_by_category.png"),
+  p_category_sales,
+  width = 8,
+  height = 5,
+  dpi = 300
+)
+
+
+# ==============================================================================
+# 5. Quantity Sold by Category
+# ==============================================================================
+
+category_quantity <- df %>%
+  group_by(Category) %>%
+  summarise(
+    Total_Quantity = sum(Quantity, na.rm = TRUE),
+    Avg_Quantity = mean(Quantity, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  arrange(Total_Quantity)
+
+p_category_quantity <- ggplot(
+  category_quantity,
+  aes(
+    x = reorder(Category, Total_Quantity),
+    y = Total_Quantity
+  )
+) +
+  geom_col() +
+  coord_flip() +
+  scale_y_continuous(labels = comma) +
+  labs(
+    title = "Quantity Sold by Product Category",
+    x = "Category",
+    y = "Quantity (units)"
+  ) +
+  theme_minimal()
+
+ggsave(
+  file.path(plots_dir, "quantity_by_category.png"),
+  p_category_quantity,
+  width = 8,
+  height = 5,
+  dpi = 300
+)
+
+
+# ==============================================================================
+# 6. Net Sales by Store Type
+# ==============================================================================
+
+store_sales <- df %>%
   group_by(Store_Type) %>%
-  summarise(Total_Sales = sum(Sales)) %>%
-  ggplot(aes(x = reorder(Store_Type, Total_Sales), y = Total_Sales)) +
-  geom_col(fill = "seagreen") +
-  coord_flip() +
-  labs(title = "Total Sales by Store Type", x = "Store Type", y = "Total Sales (AED)") +
-  scale_y_continuous(labels = comma)
-ggsave(file.path(plots_dir, "sales_by_store_type.png"), p_store_sales, width = 8, height = 5)
+  summarise(
+    Transactions = n(),
+    Total_Net_Sales = sum(Net_Sales, na.rm = TRUE),
+    Avg_Net_Sales = mean(Net_Sales, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  arrange(Total_Net_Sales)
 
-# --- Sales by City ----------------------------------------------
-p_city_sales <- df %>%
+p_store_sales <- ggplot(
+  store_sales,
+  aes(
+    x = reorder(Store_Type, Total_Net_Sales),
+    y = Total_Net_Sales
+  )
+) +
+  geom_col() +
+  coord_flip() +
+  scale_y_continuous(labels = comma) +
+  labs(
+    title = "Net Sales by Store Type",
+    subtitle = "Total revenue after discounts",
+    x = "Store Type",
+    y = "Net Sales (AED)"
+  ) +
+  theme_minimal()
+
+ggsave(
+  file.path(plots_dir, "net_sales_by_store_type.png"),
+  p_store_sales,
+  width = 8,
+  height = 5,
+  dpi = 300
+)
+
+
+# ==============================================================================
+# 7. Net Sales by City
+# ==============================================================================
+
+city_sales <- df %>%
   group_by(City) %>%
-  summarise(Total_Sales = sum(Sales)) %>%
-  ggplot(aes(x = reorder(City, Total_Sales), y = Total_Sales)) +
-  geom_col(fill = "purple") +
+  summarise(
+    Transactions = n(),
+    Total_Net_Sales = sum(Net_Sales, na.rm = TRUE),
+    Avg_Net_Sales = mean(Net_Sales, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  arrange(Total_Net_Sales)
+
+p_city_sales <- ggplot(
+  city_sales,
+  aes(
+    x = reorder(City, Total_Net_Sales),
+    y = Total_Net_Sales
+  )
+) +
+  geom_col() +
   coord_flip() +
-  labs(title = "Total Sales by City", x = "City", y = "Total Sales (AED)") +
-  scale_y_continuous(labels = comma)
-ggsave(file.path(plots_dir, "sales_by_city.png"), p_city_sales, width = 8, height = 5)
+  scale_y_continuous(labels = comma) +
+  labs(
+    title = "Net Sales by City",
+    subtitle = "Total revenue after discounts",
+    x = "City",
+    y = "Net Sales (AED)"
+  ) +
+  theme_minimal()
 
-# --- Histograms: distribution of key numeric variables ---------------
-p_hist_price <- ggplot(df, aes(x = Price)) +
-  geom_histogram(bins = 30, fill = "steelblue", color = "white") +
-  labs(title = "Distribution of Price", x = "Price (AED)", y = "Count")
-ggsave(file.path(plots_dir, "hist_price.png"), p_hist_price, width = 8, height = 5)
+ggsave(
+  file.path(plots_dir, "net_sales_by_city.png"),
+  p_city_sales,
+  width = 8,
+  height = 5,
+  dpi = 300
+)
 
-p_hist_qty <- ggplot(df, aes(x = Quantity)) +
-  geom_histogram(bins = 30, fill = "darkorange", color = "white") +
-  labs(title = "Distribution of Quantity", x = "Quantity (units)", y = "Count")
-ggsave(file.path(plots_dir, "hist_quantity.png"), p_hist_qty, width = 8, height = 5)
 
-p_hist_sales <- ggplot(df, aes(x = Sales)) +
-  geom_histogram(bins = 30, fill = "seagreen", color = "white") +
-  labs(title = "Distribution of Sales", x = "Sales (AED)", y = "Count")
-ggsave(file.path(plots_dir, "hist_sales.png"), p_hist_sales, width = 8, height = 5)
+# ==============================================================================
+# 8. Price Distribution
+# ==============================================================================
 
-p_hist_rating <- ggplot(df, aes(x = Rating)) +
-  geom_histogram(bins = 20, fill = "purple", color = "white") +
-  labs(title = "Distribution of Rating", x = "Rating (out of 5)", y = "Count")
-ggsave(file.path(plots_dir, "hist_rating.png"), p_hist_rating, width = 8, height = 5)
+p_hist_price <- ggplot(
+  df,
+  aes(x = Price)
+) +
+  geom_histogram(
+    bins = 30
+  ) +
+  scale_x_continuous(labels = dollar_format(prefix = "AED ")) +
+  labs(
+    title = "Distribution of Product Prices",
+    x = "Price",
+    y = "Number of Transactions"
+  ) +
+  theme_minimal()
 
-p_hist_discount <- ggplot(df, aes(x = `Discount_%`)) +
-  geom_histogram(bins = 20, fill = "firebrick", color = "white") +
-  labs(title = "Distribution of Discount %", x = "Discount (%)", y = "Count")
-ggsave(file.path(plots_dir, "hist_discount_pct.png"), p_hist_discount, width = 8, height = 5)
+ggsave(
+  file.path(plots_dir, "distribution_price.png"),
+  p_hist_price,
+  width = 8,
+  height = 5,
+  dpi = 300
+)
 
-# --- Boxplots: numeric variable spread across groups -----------------
-p_box_price_category <- ggplot(df, aes(x = reorder(Category, Price, median), y = Price)) +
-  geom_boxplot(fill = "steelblue", outlier.alpha = 0.4) +
+
+# ==============================================================================
+# 9. Quantity Distribution
+# ==============================================================================
+
+p_hist_quantity <- ggplot(
+  df,
+  aes(x = Quantity)
+) +
+  geom_histogram(
+    bins = 30
+  ) +
+  labs(
+    title = "Distribution of Quantity per Transaction",
+    x = "Quantity (units)",
+    y = "Number of Transactions"
+  ) +
+  theme_minimal()
+
+ggsave(
+  file.path(plots_dir, "distribution_quantity.png"),
+  p_hist_quantity,
+  width = 8,
+  height = 5,
+  dpi = 300
+)
+
+
+# ==============================================================================
+# 10. Net Sales Distribution
+# ==============================================================================
+
+p_hist_net_sales <- ggplot(
+  df,
+  aes(x = Net_Sales)
+) +
+  geom_histogram(
+    bins = 30
+  ) +
+  scale_x_continuous(
+    labels = dollar_format(prefix = "AED ")
+  ) +
+  labs(
+    title = "Distribution of Net Sales per Transaction",
+    subtitle = "Revenue after discounts",
+    x = "Net Sales",
+    y = "Number of Transactions"
+  ) +
+  theme_minimal()
+
+ggsave(
+  file.path(plots_dir, "distribution_net_sales.png"),
+  p_hist_net_sales,
+  width = 8,
+  height = 5,
+  dpi = 300
+)
+
+
+# ==============================================================================
+# 11. Rating Distribution
+# ==============================================================================
+
+p_rating_distribution <- ggplot(
+  df,
+  aes(x = Rating)
+) +
+  geom_bar() +
+  scale_x_continuous(
+    breaks = 1:5
+  ) +
+  labs(
+    title = "Distribution of Customer Ratings",
+    x = "Rating",
+    y = "Number of Transactions"
+  ) +
+  theme_minimal()
+
+ggsave(
+  file.path(plots_dir, "distribution_rating.png"),
+  p_rating_distribution,
+  width = 7,
+  height = 5,
+  dpi = 300
+)
+
+
+# ==============================================================================
+# 12. Dataset composition plots
+# ==============================================================================
+
+# Category distribution
+
+p_category_count <- ggplot(
+  category_counts,
+  aes(
+    x = reorder(Category, n),
+    y = n
+  )
+) +
+  geom_col() +
   coord_flip() +
-  labs(title = "Price Distribution by Category", x = "Category", y = "Price (AED)")
-ggsave(file.path(plots_dir, "box_price_by_category.png"), p_box_price_category, width = 8, height = 6)
+  scale_y_continuous(labels = comma) +
+  labs(
+    title = "Number of Transactions by Category",
+    x = "Category",
+    y = "Transactions"
+  ) +
+  theme_minimal()
 
-p_box_sales_store <- ggplot(df, aes(x = Store_Type, y = Sales)) +
-  geom_boxplot(fill = "seagreen", outlier.alpha = 0.4) +
-  labs(title = "Sales Distribution by Store Type", x = "Store Type", y = "Sales (AED)")
-ggsave(file.path(plots_dir, "box_sales_by_store_type.png"), p_box_sales_store, width = 8, height = 5)
+ggsave(
+  file.path(plots_dir, "transactions_by_category.png"),
+  p_category_count,
+  width = 8,
+  height = 5,
+  dpi = 300
+)
 
-p_box_rating_gender <- ggplot(df, aes(x = Gender, y = Rating)) +
-  geom_boxplot(fill = "darkorange", outlier.alpha = 0.4) +
-  labs(title = "Rating Distribution by Gender", x = "Gender", y = "Rating (out of 5)")
-ggsave(file.path(plots_dir, "box_rating_by_gender.png"), p_box_rating_gender, width = 6, height = 5)
 
-# --- Scatter plots: relationships between numeric variables -----------------
-p_scatter_price_qty <- ggplot(df, aes(x = Price, y = Quantity, color = Category)) +
-  geom_point(alpha = 0.6) +
-  labs(title = "Price vs Quantity", x = "Price (AED)", y = "Quantity (units)")
-ggsave(file.path(plots_dir, "scatter_price_vs_quantity.png"), p_scatter_price_qty, width = 9, height = 6)
+# Store type distribution
 
-p_scatter_discount_qty <- ggplot(df, aes(x = `Discount_%`, y = Quantity)) +
-  geom_point(alpha = 0.5, color = "steelblue") +
-  geom_smooth(method = "lm", se = FALSE, color = "firebrick") +
-  labs(title = "Discount % vs Quantity", x = "Discount (%)", y = "Quantity (units)")
-ggsave(file.path(plots_dir, "scatter_discount_vs_quantity.png"), p_scatter_discount_qty, width = 8, height = 5)
+p_store_count <- ggplot(
+  store_counts,
+  aes(
+    x = reorder(Store_Type, n),
+    y = n
+  )
+) +
+  geom_col() +
+  coord_flip() +
+  scale_y_continuous(labels = comma) +
+  labs(
+    title = "Number of Transactions by Store Type",
+    x = "Store Type",
+    y = "Transactions"
+  ) +
+  theme_minimal()
 
-p_scatter_price_rating <- ggplot(df, aes(x = Price, y = Rating)) +
-  geom_point(alpha = 0.5, color = "darkorange") +
-  geom_smooth(method = "lm", se = FALSE, color = "firebrick") +
-  labs(title = "Price vs Rating", x = "Price (AED)", y = "Rating (out of 5)")
-ggsave(file.path(plots_dir, "scatter_price_vs_rating.png"), p_scatter_price_rating, width = 8, height = 5)
+ggsave(
+  file.path(plots_dir, "transactions_by_store_type.png"),
+  p_store_count,
+  width = 8,
+  height = 5,
+  dpi = 300
+)
 
-# --- Correlation heatmap: numeric variables -----------------
-num_vars <- df %>%
-  select(Price, Quantity, Sales, `Discount_%`, Net_Sales, Rating)
 
-corr_matrix <- cor(num_vars, use = "complete.obs")
-corr_df <- as.data.frame(as.table(corr_matrix))
+# City distribution
 
-p_corr_heatmap <- ggplot(corr_df, aes(Var1, Var2, fill = Freq)) +
-  geom_tile(color = "white") +
-  geom_text(aes(label = round(Freq, 2)), size = 3.5) +
-  scale_fill_gradient2(low = "firebrick", mid = "white", high = "steelblue", midpoint = 0, limits = c(-1, 1)) +
-  labs(title = "Correlation Heatmap of Numeric Variables", x = NULL, y = NULL, fill = "Corr") +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
-ggsave(file.path(plots_dir, "correlation_heatmap.png"), p_corr_heatmap, width = 7, height = 6)
+p_city_count <- ggplot(
+  city_counts,
+  aes(
+    x = reorder(City, n),
+    y = n
+  )
+) +
+  geom_col() +
+  coord_flip() +
+  scale_y_continuous(labels = comma) +
+  labs(
+    title = "Number of Transactions by City",
+    x = "City",
+    y = "Transactions"
+  ) +
+  theme_minimal()
 
-message("EDA overview complete: plots saved to outputs/plots/")
+ggsave(
+  file.path(plots_dir, "transactions_by_city.png"),
+  p_city_count,
+  width = 8,
+  height = 5,
+  dpi = 300
+)
+
+
+# ==============================================================================
+# 13. Final message
+# ==============================================================================
+
+message(
+  "EDA overview complete: plots saved to ",
+  plots_dir
+)
