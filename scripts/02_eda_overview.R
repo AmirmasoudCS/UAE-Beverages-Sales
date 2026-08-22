@@ -353,7 +353,7 @@ ggsave(
   p_corr_heatmap,
   width = 7,
   height = 6,
-  dpi = 150
+  dpi = 300
 )
 
 
