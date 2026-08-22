@@ -251,61 +251,53 @@ ggsave(
 
 
 # ==============================================================================
-# 8. Price Distribution — faceted by Category
+# 8. Price Range by Category
 # ==============================================================================
 
-# Statistics layer: compute per-category median for reference lines
-price_medians <- df %>%
-  group_by(Category) %>%
-  summarise(Median_Price = median(Price, na.rm = TRUE), .groups = "drop")
-
-p_hist_price_faceted <- ggplot(
+p_box_price_category <- ggplot(
   df,
-  aes(x = Price)
+  aes(
+    x = reorder(Category, Price, median),
+    y = Price
+  )
 ) +
-  # Geometry
-  geom_histogram(
-    bins = 25,
+  # Geometry: raw points first (so box sits on top), then the box itself
+  geom_jitter(
+    width = 0.15,
+    alpha = 0.15,
+    color = "steelblue",
+    size = 0.8
+  ) +
+  geom_boxplot(
     fill = "steelblue",
-    color = "white"
-  ) +
-  # Statistics: per-facet median line
-  geom_vline(
-    data = price_medians,
-    aes(xintercept = Median_Price),
-    linetype = "dashed",
-    color = "firebrick",
-    linewidth = 0.6
-  ) +
-  # Facets
-  facet_wrap(
-    ~ Category,
-    scales = "free"
+    alpha = 0.5,
+    outlier.shape = NA,
+    color = "black",
+    width = 0.5
   ) +
   # Coordinates
-  scale_x_continuous(
+  coord_flip() +
+  # Aesthetics / axis formatting
+  scale_y_continuous(
     labels = dollar_format(prefix = "AED ")
   ) +
-  # Aesthetics / labels
   labs(
-    title = "Distribution of Product Prices by Category",
-    subtitle = "Dashed line marks each category's median price",
-    x = "Price",
-    y = "Number of Transactions"
+    title = "Price Range by Product Category",
+    subtitle = "Box shows median and interquartile range; points show individual transactions",
+    x = "Category",
+    y = "Price"
   ) +
   # Theme
-  theme_minimal(base_size = 11) +
+  theme_minimal(base_size = 12) +
   theme(
-    strip.text = element_text(face = "bold", size = 9),
-    axis.text.x = element_text(angle = 45, hjust = 1, size = 8),
-    panel.spacing = unit(1, "lines")
+    panel.grid.major.y = element_blank()
   )
 
 ggsave(
-  file.path(plots_dir, "distribution_price_by_category.png"),
-  p_hist_price_faceted,
-  width = 11,
-  height = 8,
+  file.path(plots_dir, "box_price_by_category.png"),
+  p_box_price_category,
+  width = 9,
+  height = 6,
   dpi = 300
 )
 
