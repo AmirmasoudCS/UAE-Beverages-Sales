@@ -53,7 +53,7 @@ numeric_summary <- df %>%
     Price,
     Quantity,
     Sales,
-    Discount_Pct,
+    Discount_%,
     Discount_Amount,
     Net_Sales,
     Rating
