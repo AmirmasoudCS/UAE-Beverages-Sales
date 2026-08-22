@@ -303,49 +303,51 @@ ggsave(
 
 
 # ==============================================================================
-# 9. Correlation Matrix 
+# 9. Correlation Matrix
 # ==============================================================================
 
 num_vars <- df %>%
   select(Price, Quantity, Sales, `Discount_%`, Net_Sales, Rating)
 
 corr_matrix <- cor(num_vars, use = "complete.obs")
-corr_df <- as.data.frame(as.table(corr_matrix))
+
+# Mask upper triangle (including diagonal) with NA
+corr_matrix[upper.tri(corr_matrix, diag = TRUE)] <- NA
+
+corr_df <- as.data.frame(as.table(corr_matrix)) %>%
+  filter(!is.na(Freq))
 names(corr_df) <- c("Var1", "Var2", "Correlation")
 
 p_corr_heatmap <- ggplot(
   corr_df,
   aes(x = Var1, y = Var2, fill = Correlation)
 ) +
-  # Geometry
   geom_tile(color = "white") +
   geom_text(
     aes(label = round(Correlation, 2)),
     size = 3.5,
     color = "black"
   ) +
-  # Statistics: diverging fill scale centered at 0
   scale_fill_gradient2(
     low = "firebrick",
     mid = "white",
     high = "steelblue",
     midpoint = 0,
-    limits = c(-1, 1)
+    limits = c(-1, 1),
+    na.value = "transparent"
   ) +
-  # Coordinates: keep tiles square
   coord_fixed() +
-  # Aesthetics / labels
   labs(
     title = "Correlation Between Numeric Variables",
-    subtitle = "Pearson correlation coefficient",
+    subtitle = "Pearson correlation coefficient (diagonal and duplicate pairs removed)",
     x = NULL,
     y = NULL,
     fill = "Corr"
   ) +
-  # Theme
   theme_minimal(base_size = 12) +
   theme(
-    axis.text.x = element_text(angle = 45, hjust = 1)
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    panel.grid = element_blank()
   )
 
 ggsave(
