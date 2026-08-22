@@ -303,49 +303,57 @@ ggsave(
 
 
 # ==============================================================================
-# 9. Price vs Quantity 
+# 9. Correlation Matrix 
 # ==============================================================================
 
-price_qty_corr <- cor(df$Price, df$Quantity, use = "complete.obs")
-message("Correlation between Price and Quantity: ", round(price_qty_corr, 3))
+num_vars <- df %>%
+  select(Price, Quantity, Sales, `Discount_%`, Net_Sales, Rating)
 
-p_scatter_price_qty <- ggplot(
-  df,
-  aes(x = Price, y = Quantity)
+corr_matrix <- cor(num_vars, use = "complete.obs")
+corr_df <- as.data.frame(as.table(corr_matrix))
+names(corr_df) <- c("Var1", "Var2", "Correlation")
+
+p_corr_heatmap <- ggplot(
+  corr_df,
+  aes(x = Var1, y = Var2, fill = Correlation)
 ) +
   # Geometry
-  geom_point(
-    alpha = 0.15,
-    color = "steelblue",
-    size = 1
+  geom_tile(color = "white") +
+  geom_text(
+    aes(label = round(Correlation, 2)),
+    size = 3.5,
+    color = "black"
   ) +
-  # Statistics: linear trend line
-  geom_smooth(
-    method = "lm",
-    se = TRUE,
-    color = "firebrick",
-    linewidth = 0.8
+  # Statistics: diverging fill scale centered at 0
+  scale_fill_gradient2(
+    low = "firebrick",
+    mid = "white",
+    high = "steelblue",
+    midpoint = 0,
+    limits = c(-1, 1)
   ) +
-  # Coordinates
-  scale_x_continuous(
-    labels = dollar_format(prefix = "AED ")
-  ) +
+  # Coordinates: keep tiles square
+  coord_fixed() +
   # Aesthetics / labels
   labs(
-    title = "Price vs Quantity Purchased",
-    subtitle = paste0("Correlation: ", round(price_qty_corr, 3)),
-    x = "Price",
-    y = "Quantity (units)"
+    title = "Correlation Between Numeric Variables",
+    subtitle = "Pearson correlation coefficient",
+    x = NULL,
+    y = NULL,
+    fill = "Corr"
   ) +
   # Theme
-  theme_minimal(base_size = 12)
+  theme_minimal(base_size = 12) +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1)
+  )
 
 ggsave(
-  file.path(plots_dir, "scatter_price_vs_quantity.png"),
-  p_scatter_price_qty,
-  width = 8,
-  height = 5,
-  dpi = 300
+  file.path(plots_dir, "correlation_heatmap.png"),
+  p_corr_heatmap,
+  width = 7,
+  height = 6,
+  dpi = 150
 )
 
 
