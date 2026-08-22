@@ -303,26 +303,46 @@ ggsave(
 
 
 # ==============================================================================
-# 9. Quantity Distribution
+# 9. Price vs Quantity 
 # ==============================================================================
 
-p_hist_quantity <- ggplot(
+price_qty_corr <- cor(df$Price, df$Quantity, use = "complete.obs")
+message("Correlation between Price and Quantity: ", round(price_qty_corr, 3))
+
+p_scatter_price_qty <- ggplot(
   df,
-  aes(x = Quantity)
+  aes(x = Price, y = Quantity)
 ) +
-  geom_histogram(
-    bins = 30
+  # Geometry
+  geom_point(
+    alpha = 0.15,
+    color = "steelblue",
+    size = 1
   ) +
+  # Statistics: linear trend line
+  geom_smooth(
+    method = "lm",
+    se = TRUE,
+    color = "firebrick",
+    linewidth = 0.8
+  ) +
+  # Coordinates
+  scale_x_continuous(
+    labels = dollar_format(prefix = "AED ")
+  ) +
+  # Aesthetics / labels
   labs(
-    title = "Distribution of Quantity per Transaction",
-    x = "Quantity (units)",
-    y = "Number of Transactions"
+    title = "Price vs Quantity Purchased",
+    subtitle = paste0("Correlation: ", round(price_qty_corr, 3)),
+    x = "Price",
+    y = "Quantity (units)"
   ) +
-  theme_minimal()
+  # Theme
+  theme_minimal(base_size = 12)
 
 ggsave(
-  file.path(plots_dir, "distribution_quantity.png"),
-  p_hist_quantity,
+  file.path(plots_dir, "scatter_price_vs_quantity.png"),
+  p_scatter_price_qty,
   width = 8,
   height = 5,
   dpi = 300
