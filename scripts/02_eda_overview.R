@@ -309,19 +309,39 @@ ggsave(
 # 10. Net Sales Distribution
 # ==============================================================================
 
+median_net_sales <- median(df$Net_Sales, na.rm = TRUE)
+
 p_hist_net_sales <- ggplot(
   df,
   aes(x = Net_Sales)
 ) +
   geom_histogram(
-    bins = 30
+    bins = 30,
+    fill = "steelblue",
+    color = "white"
   ) +
-  scale_x_continuous(
+  geom_vline(
+    xintercept = median_net_sales,
+    linetype = "dashed",
+    color = "firebrick",
+    linewidth = 0.7
+  ) +
+  annotate(
+    "text",
+    x = median_net_sales,
+    y = Inf,
+    label = paste0("Median: AED ", round(median_net_sales, 0)),
+    color = "firebrick",
+    vjust = 1.5,
+    hjust = -0.1,
+    size = 3.5
+  ) +
+  scale_x_log10(
     labels = dollar_format(prefix = "AED ")
   ) +
   labs(
     title = "Distribution of Net Sales per Transaction",
-    subtitle = "Revenue after discounts",
+    subtitle = "Revenue after discounts (log scale)",
     x = "Net Sales",
     y = "Number of Transactions"
   ) +
