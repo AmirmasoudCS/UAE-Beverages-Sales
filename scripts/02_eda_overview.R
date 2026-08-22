@@ -251,29 +251,61 @@ ggsave(
 
 
 # ==============================================================================
-# 8. Price Distribution
+# 8. Price Distribution — faceted by Category
 # ==============================================================================
 
-p_hist_price <- ggplot(
+# Statistics layer: compute per-category median for reference lines
+price_medians <- df %>%
+  group_by(Category) %>%
+  summarise(Median_Price = median(Price, na.rm = TRUE), .groups = "drop")
+
+p_hist_price_faceted <- ggplot(
   df,
   aes(x = Price)
 ) +
+  # Geometry
   geom_histogram(
-    bins = 30
+    bins = 25,
+    fill = "steelblue",
+    color = "white"
   ) +
-  scale_x_continuous(labels = dollar_format(prefix = "AED ")) +
+  # Statistics: per-facet median line
+  geom_vline(
+    data = price_medians,
+    aes(xintercept = Median_Price),
+    linetype = "dashed",
+    color = "firebrick",
+    linewidth = 0.6
+  ) +
+  # Facets
+  facet_wrap(
+    ~ Category,
+    scales = "free"
+  ) +
+  # Coordinates
+  scale_x_continuous(
+    labels = dollar_format(prefix = "AED ")
+  ) +
+  # Aesthetics / labels
   labs(
-    title = "Distribution of Product Prices",
+    title = "Distribution of Product Prices by Category",
+    subtitle = "Dashed line marks each category's median price",
     x = "Price",
     y = "Number of Transactions"
   ) +
-  theme_minimal()
+  # Theme
+  theme_minimal(base_size = 11) +
+  theme(
+    strip.text = element_text(face = "bold", size = 9),
+    axis.text.x = element_text(angle = 45, hjust = 1, size = 8),
+    panel.spacing = unit(1, "lines")
+  )
 
 ggsave(
-  file.path(plots_dir, "distribution_price.png"),
-  p_hist_price,
-  width = 8,
-  height = 5,
+  file.path(plots_dir, "distribution_price_by_category.png"),
+  p_hist_price_faceted,
+  width = 11,
+  height = 8,
   dpi = 300
 )
 
