@@ -149,8 +149,8 @@ if (invalid_quantity > 0) {
 # --- Discount ------------------------------------------------------------------
 
 invalid_discount <- sum(
-  !is.na(df_clean$Discount_%) &
-    (df_clean$Discount_% < 0 | df_clean$Discount_% > 100)
+  !is.na(df_clean$`Discount_%`) &
+    (df_clean$`Discount_%` < 0 | df_clean$`Discount_%` > 100)
 )
 
 if (invalid_discount > 0) {
@@ -216,7 +216,7 @@ message(
 
 net_sales_expected <-
   df_clean$Sales *
-  (1 - df_clean$Discount_% / 100)
+  (1 - df_clean$`Discount_%` / 100)
 
 net_sales_error <- abs(
   df_clean$Net_Sales -
