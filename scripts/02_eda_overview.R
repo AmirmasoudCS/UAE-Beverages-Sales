@@ -205,26 +205,52 @@ ggsave(
 # 7. Net Sales by City 
 # ==============================================================================
 
+city_stats <- city_sales %>%
+  summarise(
+    Mean_Sales = mean(Total_Net_Sales),
+    Min_Sales = min(Total_Net_Sales),
+    Max_Sales = max(Total_Net_Sales),
+    CV_Pct = sd(Total_Net_Sales) / mean(Total_Net_Sales) * 100
+  )
+
+spread_label <- paste0(
+  "Range: AED ", comma(round(city_stats$Min_Sales, 0)),
+  " – ", comma(round(city_stats$Max_Sales, 0)),
+  "  (", round(city_stats$CV_Pct, 1), "% variation)"
+)
+
 p_city_sales <- city_sales %>%
   ggplot(aes(
     x = reorder(City, Total_Net_Sales),
     y = Total_Net_Sales
   )) +
+  # Geometry
   geom_col(fill = "steelblue") +
+  # Statistics: mean reference line across all cities
+  geom_hline(
+    yintercept = city_stats$Mean_Sales,
+    linetype = "dashed",
+    color = "firebrick",
+    linewidth = 0.6
+  ) +
+  # Coordinates: start axis at 0 so bar lengths aren't visually misleading,
+  # but zoom the label region so the annotation is legible
   coord_flip() +
+  # Aesthetics / labels
   scale_y_continuous(labels = comma) +
   labs(
     title = "Net Sales by City",
-    subtitle = "Revenue is fairly evenly distributed across cities",
+    subtitle = paste0("Cities perform almost identically — ", spread_label),
     x = "City",
     y = "Net Sales (AED)"
   ) +
+  # Theme
   theme_minimal(base_size = 12)
 
 ggsave(
   file.path(plots_dir, "net_sales_by_city.png"),
   p_city_sales,
-  width = 8,
+  width = 9,
   height = 5,
   dpi = 150
 )
