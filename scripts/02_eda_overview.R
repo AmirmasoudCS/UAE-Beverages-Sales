@@ -422,7 +422,7 @@ p_rating_distribution <- ggplot(
 ) +
   # Geometry: proper binning for continuous decimal data
   geom_histogram(
-    bins = 25,
+    binwidth = 0.1,
     fill = "steelblue",
     color = "white"
   ) +
