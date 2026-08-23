@@ -411,52 +411,6 @@ ggsave(
 
 
 # ==============================================================================
-# 11. Transactions by Category, faceted by Rating tier
-# ==============================================================================
-
-df_rating_tier <- df %>%
-  mutate(Rating_Tier = paste0(round(Rating), " Star"))
-
-category_by_rating <- df_rating_tier %>%
-  count(Rating_Tier, Category)
-
-p_rating_by_category <- ggplot(
-  category_by_rating,
-  aes(
-    x = reorder(Category, n),
-    y = n
-  )
-) +
-  # Geometry
-  geom_col(fill = "steelblue") +
-  # Coordinates
-  coord_flip() +
-  # Facets
-  facet_wrap(~ Rating_Tier, ncol = 3) +
-  # Aesthetics / labels
-  labs(
-    title = "Number of Transactions by Category, Faceted by Rating Tier",
-    subtitle = "Rating rounded to nearest star",
-    x = "Category",
-    y = "Number of Transactions"
-  ) +
-  # Theme
-  theme_minimal(base_size = 11) +
-  theme(
-    strip.text = element_text(face = "bold", size = 9),
-    panel.spacing = unit(1, "lines")
-  )
-
-ggsave(
-  file.path(plots_dir, "transactions_by_category_by_rating.png"),
-  p_rating_by_category,
-  width = 11,
-  height = 7,
-  dpi = 150
-)
-
-
-# ==============================================================================
 # 12. Dataset composition plots
 # ==============================================================================
 
