@@ -192,7 +192,7 @@ Three months are flagged as anomalous, all within the first year of data (two sp
 
 Fewer than half a percent of transactions in any category are flagged as outliers, using the standard 1.5x interquartile range rule applied within each category's own range. This is a reassuring result for data quality: the outliers that do exist sit right at the tail of each category's normal distribution, exactly where genuine unusually large transactions would be expected, rather than being scattered randomly across the data. Code: [`scripts/04_anomaly_detection.R`](scripts/04_anomaly_detection.R).
 
-## 🧵 Summary
+## 🗒️ Summary
 
 Across every method used in this project, exploratory charts, correlation analysis, clustering, classification, and feature importance, the same story holds. Category and Price are what actually differentiate this business. Camel milk and Arabic coffee form a distinct, higher priced tier that earns disproportionately more revenue than its sales volume would suggest. Everything else (City, Store_Type, Discount_%, Rating, Quantity, Gender) behaves close to flat or random. The one real exception to the flatness is time: Camel milk carries a genuine, consistent summer seasonal peak, and the top three categories show a shared multi year dip and recovery pattern that a purely aggregate view would have missed.
 
