@@ -158,7 +158,106 @@ ggsave(
 )
 
 # ==============================================================================
-# 4. Final message
+# 4. Random Forest: does adding more features improve Category prediction?
+# ==============================================================================
+
+# The multinomial model used Price alone. This tests whether Quantity,
+# Discount_%, Store_Type, and Month add real predictive power once combined,
+# or whether Price was already carrying nearly all the signal, as the
+# correlation matrix and earlier EDA findings suggested it would.
+
+rf_data <- df %>%
+  select(Category, Price, Quantity, `Discount_%`, Store_Type, Month) %>%
+  mutate(Category = factor(Category))
+
+set.seed(42)
+rf_train_idx <- sample(seq_len(nrow(rf_data)), size = 0.75 * nrow(rf_data))
+rf_train <- rf_data[rf_train_idx, ]
+rf_test <- rf_data[-rf_train_idx, ]
+
+rf_model <- randomForest(
+  Category ~ Price + Quantity + `Discount_%` + Store_Type + Month,
+  data = rf_train,
+  ntree = 300,
+  importance = TRUE
+)
+
+rf_predicted <- predict(rf_model, newdata = rf_test)
+rf_accuracy <- mean(rf_predicted == rf_test$Category)
+
+message(
+  "Random Forest accuracy (multiple features): ", round(rf_accuracy * 100, 1), "%"
+)
+message(
+  "Compare to multinomial accuracy (Price only): ", round(accuracy * 100, 1), "%"
+)
+
+importance_df <- as.data.frame(importance(rf_model)) %>%
+  tibble::rownames_to_column("Feature") %>%
+  arrange(MeanDecreaseGini)
+
+importance_df$Feature <- factor(importance_df$Feature, levels = importance_df$Feature)
+
+p_importance <- ggplot(importance_df, aes(x = Feature, y = MeanDecreaseGini)) +
+  geom_col(fill = color_main) +
+  coord_flip() +
+  labs(
+    title = "Random Forest Feature Importance",
+    subtitle = paste0(
+      "Predicting Category from multiple features. Accuracy: ",
+      round(rf_accuracy * 100, 1), "% (vs ", round(accuracy * 100, 1),
+      "% using Price alone)"
+    ),
+    x = NULL,
+    y = "Mean Decrease in Gini (higher = more important)"
+  )
+
+ggsave(
+  file.path(plots_dir, "rf_feature_importance.png"),
+  p_importance, width = 8, height = 5, dpi = 300
+)
+
+# ==============================================================================
+# 5. Time Series Forecasting: projecting Net Sales forward
+# ==============================================================================
+
+# Uses the same monthly series built during EDA. ARIMA is fit on the full
+# history and used to project the next 6 months, with confidence intervals,
+# to see whether the flat historical trend is expected to continue.
+
+monthly_sales_ts <- df %>%
+  group_by(Year_Month) %>%
+  summarise(Total_Net_Sales = sum(Net_Sales, na.rm = TRUE), .groups = "drop") %>%
+  arrange(Year_Month)
+
+sales_ts <- ts(
+  monthly_sales_ts$Total_Net_Sales,
+  start = c(year(min(monthly_sales_ts$Year_Month)), month(min(monthly_sales_ts$Year_Month))),
+  frequency = 12
+)
+
+arima_model <- auto.arima(sales_ts)
+message("Selected ARIMA model: ", paste(deparse(arima_model), collapse = " "))
+print(summary(arima_model))
+
+sales_forecast <- forecast(arima_model, h = 6)
+
+p_forecast <- autoplot(sales_forecast) +
+  labs(
+    title = "Net Sales Forecast: Next 6 Months",
+    subtitle = "ARIMA model fit on full monthly history, with 80% and 95% confidence bands",
+    x = NULL,
+    y = "Net Sales (AED)"
+  ) +
+  scale_y_continuous(labels = comma)
+
+ggsave(
+  file.path(plots_dir, "net_sales_forecast.png"),
+  p_forecast, width = 10, height = 6, dpi = 300
+)
+
+# ==============================================================================
+# 6. Final message
 # ==============================================================================
 
 message("Modeling complete: plots saved to ", plots_dir)
