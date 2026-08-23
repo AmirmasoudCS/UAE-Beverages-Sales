@@ -476,6 +476,7 @@ ggsave(
 gender_stats <- df %>%
   group_by(Gender) %>%
   summarise(
+    Transactions = n(),
     Median_Net_Sales = median(Net_Sales, na.rm = TRUE),
     .groups = "drop"
   )
@@ -488,7 +489,7 @@ p_box_sales_gender <- ggplot(df, aes(x = Gender, y = Net_Sales)) +
   scale_y_log10(labels = dollar_format(prefix = "AED ")) +
   labs(
     title = "Net Sales per Transaction by Gender",
-    subtitle = "Log scale. Checking whether transaction value differs by gender",
+    subtitle = "Transaction value is nearly identical across genders (log scale)",
     x = "Gender",
     y = "Net Sales"
   )
@@ -500,50 +501,14 @@ ggsave(
 
 print(gender_stats)
 
-# ==============================================================================
-# 17. Category Mix by Gender
-# ==============================================================================
-
-# Proportion (not raw count) so the two genders are compared on equal footing
-# even if their overall transaction counts differ.
-
-category_gender <- df %>%
-  count(Gender, Category) %>%
-  group_by(Gender) %>%
-  mutate(Share = n / sum(n)) %>%
-  ungroup()
-
-category_order_gender <- category_gender %>%
-  group_by(Category) %>%
-  summarise(Total = sum(n), .groups = "drop") %>%
-  arrange(Total) %>%
-  pull(Category)
-
-category_gender <- category_gender %>%
-  mutate(Category = factor(Category, levels = category_order_gender))
-
-p_category_by_gender <- ggplot(
-  category_gender,
-  aes(x = Category, y = Share, fill = Gender)
-) +
-  geom_col(position = "dodge") +
-  coord_flip() +
-  scale_y_continuous(labels = percent_format(accuracy = 1)) +
-  scale_fill_manual(values = c(color_main, color_accent, "grey50", "#5b8c5a")) +
-  labs(
-    title = "Product Category Mix by Gender",
-    subtitle = "Share of each gender's transactions going to each category",
-    x = "Category",
-    y = "Share of Transactions"
-  )
-
-ggsave(
-  file.path(plots_dir, "category_mix_by_gender.png"),
-  p_category_by_gender, width = 9, height = 6, dpi = 300
-)
+# Note: category mix by gender was tested (dodged bar chart of category share
+# by gender) and cut from the final deck. The only visible feature, a higher
+# apparent share of Camel milk among "Other" gender, is explained by that
+# group's small sample size (n = 91 vs ~2,400-2,500 for Female/Male) rather
+# than a genuine preference difference. See write-up for the one-line summary.
 
 # ==============================================================================
-# 18. Final message
+# 17. Final message
 # ==============================================================================
 
 message("EDA overview complete: plots saved to ", plots_dir)
