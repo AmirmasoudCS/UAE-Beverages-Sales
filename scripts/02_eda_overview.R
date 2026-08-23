@@ -411,37 +411,35 @@ ggsave(
 
 
 # ==============================================================================
-# 11. Rating Distribution
+# 11. Rating Distribution — faceted by Category
 # ==============================================================================
 
-median_rating <- median(df$Rating, na.rm = TRUE)
+rating_medians <- df %>%
+  group_by(Category) %>%
+  summarise(Median_Rating = median(Rating, na.rm = TRUE), .groups = "drop")
 
-p_rating_distribution <- ggplot(
+p_rating_faceted <- ggplot(
   df,
   aes(x = Rating)
 ) +
-  # Geometry: proper binning for continuous decimal data
+  # Geometry: fixed binwidth matching data resolution (0.1)
   geom_histogram(
     binwidth = 0.1,
     fill = "steelblue",
     color = "white"
   ) +
-  # Statistics: median reference line
+  # Statistics: per-category median line
   geom_vline(
-    xintercept = median_rating,
+    data = rating_medians,
+    aes(xintercept = Median_Rating),
     linetype = "dashed",
     color = "firebrick",
-    linewidth = 0.7
+    linewidth = 0.6
   ) +
-  annotate(
-    "text",
-    x = median_rating,
-    y = Inf,
-    label = paste0("Median: ", round(median_rating, 2)),
-    color = "firebrick",
-    vjust = 1.5,
-    hjust = -0.1,
-    size = 3.5
+  # Facets
+  facet_wrap(
+    ~ Category,
+    scales = "free_y"
   ) +
   # Coordinates
   scale_x_continuous(
@@ -450,19 +448,23 @@ p_rating_distribution <- ggplot(
   ) +
   # Aesthetics / labels
   labs(
-    title = "Distribution of Customer Ratings",
-    subtitle = "Ratings show no meaningful skew — roughly uniform across the 1-5 scale",
+    title = "Distribution of Customer Ratings by Category",
+    subtitle = "Dashed line marks each category's median rating",
     x = "Rating (out of 5)",
     y = "Number of Transactions"
   ) +
   # Theme
-  theme_minimal(base_size = 12)
+  theme_minimal(base_size = 11) +
+  theme(
+    strip.text = element_text(face = "bold", size = 9),
+    panel.spacing = unit(1, "lines")
+  )
 
 ggsave(
-  file.path(plots_dir, "distribution_rating.png"),
-  p_rating_distribution,
-  width = 8,
-  height = 5,
+  file.path(plots_dir, "distribution_rating_by_category.png"),
+  p_rating_faceted,
+  width = 11,
+  height = 8,
   dpi = 150
 )
 
