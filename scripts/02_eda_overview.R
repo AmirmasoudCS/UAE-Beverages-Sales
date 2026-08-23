@@ -529,7 +529,7 @@ p_category_by_gender <- ggplot(
   geom_col(position = "dodge") +
   coord_flip() +
   scale_y_continuous(labels = percent_format(accuracy = 1)) +
-  scale_fill_manual(values = c(color_main, color_accent)) +
+  scale_fill_manual(values = c(color_main, color_accent, "grey50", "#5b8c5a")) +
   labs(
     title = "Product Category Mix by Gender",
     subtitle = "Share of each gender's transactions going to each category",
