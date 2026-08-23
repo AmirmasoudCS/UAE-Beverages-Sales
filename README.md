@@ -48,6 +48,7 @@ The guiding principle throughout this project was to test every variable in the 
 
 Camel milk and Arabic coffee generate substantially more revenue than the other five categories, despite not selling the highest volume. This is the single strongest pattern in the dataset. Code: [`scripts/02_eda_overview.R`](scripts/02_eda_overview.R), section 6.
 
+</br>
 <div align="center">
   <img src="outputs/plots/box_price_by_category.png" width="700">
   <p><em>Price distribution per category, with individual transactions shown as points beneath each box.</em></p>
@@ -55,6 +56,7 @@ Camel milk and Arabic coffee generate substantially more revenue than the other 
 
 Each category occupies a distinct but fairly flat price range rather than clustering around one typical price. Camel milk (AED 8 to 20) and Arabic coffee (AED 4 to 15) sit well above the other five categories, which mostly overlap in the AED 2 to 8 range. This is the chart that first suggested a two tier price structure, which later got confirmed formally through clustering. Code: [`scripts/02_eda_overview.R`](scripts/02_eda_overview.R), section 10.
 
+</br>
 <div align="center">
   <img src="outputs/plots/revenue_vs_quantity_rank.png" width="700">
   <p><em>Each category's rank by quantity sold versus its rank by revenue.</em></p>
@@ -85,6 +87,7 @@ Both City and Store Type show only a few percent of variation from lowest to hig
 
 Sales and Net Sales are correlated at 0.98, which is expected since one is derived from the other. Price and Quantity both correlate moderately with Sales, which follows directly from Sales being Price multiplied by Quantity. The more notable result is what shows almost no correlation with anything: Discount_% and Rating both sit near zero across the board, consistent with them behaving as noise in this dataset. Code: [`scripts/02_eda_overview.R`](scripts/02_eda_overview.R), section 11.
 
+</br>
 <div align="center">
   <img src="outputs/plots/distribution_net_sales.png" width="700">
   <p><em>Distribution of net sales per transaction, log scale, with the median marked.</em></p>
@@ -101,6 +104,7 @@ On a log scale, transaction values follow a roughly bell shaped distribution cen
 
 Monthly revenue is volatile month to month but the smoothed trend stays within a narrow band across nearly six years. There is no meaningful long term growth or decline. Code: [`scripts/02_eda_overview.R`](scripts/02_eda_overview.R), section 13.
 
+</br>
 <div align="center">
   <img src="outputs/plots/revenue_trend_by_category.png" width="700">
   <p><em>Smoothed revenue trend per category, overlaid on one chart.</em></p>
@@ -108,6 +112,7 @@ Monthly revenue is volatile month to month but the smoothed trend stays within a
 
 Category ranking stays essentially fixed for the entire period. Camel milk leads throughout, followed by Arabic coffee and Juice, with the remaining four categories clustered near the bottom the whole time. The top three categories do show a real dip and recovery cycle around 2021 to 2023, which the pooled chart above smooths away. Code: [`scripts/02_eda_overview.R`](scripts/02_eda_overview.R), section 14.
 
+</br>
 <div align="center">
   <img src="outputs/plots/seasonality_by_category.png" width="750">
   <p><em>Each category's own top three months of the year, highlighted individually.</em></p>
@@ -149,6 +154,7 @@ The elbow plot shows a clean break at k = 2. Running k-means with two clusters s
 
 A model using price as the only predictor reaches 34.2% accuracy, well above the roughly 14% expected from random guessing across seven categories. Camel milk is identified correctly 70% of the time, by far the easiest category to separate. The other five categories overlap heavily with each other and are frequently confused, matching what the boxplot showed visually. Code: [`scripts/03_modelling.R`](scripts/03_modelling.R), section 3.
 
+</br>
 <div align="center">
   <img src="outputs/plots/rf_feature_importance.png" width="700">
   <p><em>Random forest feature importance for predicting category from multiple variables at once.</em></p>
