@@ -463,47 +463,45 @@ ggsave(
 
 
 # ==============================================================================
-# 11. Net Sales Trend Over Time
+# 11b. Net Sales Trend by Category — smoothed trends only, overlaid
 # ==============================================================================
 
-monthly_sales <- df %>%
-  group_by(Year_Month) %>%
-  summarise(
-    Total_Net_Sales = sum(Net_Sales, na.rm = TRUE),
-    Transactions = n(),
-    .groups = "drop"
-  )
+monthly_category_sales <- df %>%
+  group_by(Category, Year_Month) %>%
+  summarise(Total_Net_Sales = sum(Net_Sales, na.rm = TRUE), .groups = "drop")
 
-p_trend_monthly <- ggplot(
-  monthly_sales,
-  aes(x = Year_Month, y = Total_Net_Sales)
+p_trend_by_category <- ggplot(
+  monthly_category_sales,
+  aes(x = Year_Month, y = Total_Net_Sales, color = Category)
 ) +
-  # Geometry
-  geom_line(color = "steelblue", linewidth = 0.8) +
-  geom_point(color = "steelblue", size = 1.5) +
-  # Statistics: smoothed trend to cut through month-to-month noise
+  # Statistics only — smoothed trend, no raw noisy points
   geom_smooth(
     method = "loess",
     se = FALSE,
-    color = "firebrick",
-    linewidth = 0.8,
-    linetype = "dashed"
+    linewidth = 0.9
   ) +
   # Coordinates
-  scale_x_date(date_breaks = "6 months", date_labels = "%b %Y") +
+  scale_x_date(date_breaks = "1 year", date_labels = "%Y") +
   scale_y_continuous(labels = comma) +
   # Aesthetics / labels
   labs(
-    title = "Net Sales Trend Over Time",
-    subtitle = "Monthly total revenue after discounts, with smoothed trend line",
+    title = "Revenue Trend by Category Over Time",
+    subtitle = "Smoothed trends only — checking whether any category is growing or declining",
     x = NULL,
-    y = "Net Sales (AED)"
+    y = "Net Sales (AED)",
+    color = "Category"
   ) +
   # Theme
   theme_minimal(base_size = 12) +
-  theme(
-    axis.text.x = element_text(angle = 45, hjust = 1)
-  )
+  theme(legend.position = "right")
+
+ggsave(
+  file.path(plots_dir, "revenue_trend_by_category.png"),
+  p_trend_by_category,
+  width = 10,
+  height = 6,
+  dpi = 150
+)
 
 ggsave(
   file.path(plots_dir, "net_sales_trend_monthly.png"),
