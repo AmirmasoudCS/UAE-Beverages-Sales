@@ -515,48 +515,59 @@ ggsave(
 
 
 # ==============================================================================
-# 12. Seasonality — Net Sales by Calendar Month (pooled across years)
+# 12b. Seasonality by Category — faceted
 # ==============================================================================
 
-seasonal_sales <- df %>%
-  group_by(Month) %>%
+seasonal_category <- df %>%
+  group_by(Category, Month) %>%
   summarise(
-    Avg_Net_Sales = mean(Net_Sales, na.rm = TRUE),
     Total_Net_Sales = sum(Net_Sales, na.rm = TRUE),
     .groups = "drop"
   )
 
-seasonal_mean <- mean(seasonal_sales$Total_Net_Sales)
+category_month_means <- seasonal_category %>%
+  group_by(Category) %>%
+  summarise(Mean_Sales = mean(Total_Net_Sales), .groups = "drop")
 
-p_seasonality <- ggplot(
-  seasonal_sales,
+seasonal_category <- seasonal_category %>%
+  left_join(category_month_means, by = "Category")
+
+p_seasonality_by_category <- ggplot(
+  seasonal_category,
   aes(x = Month, y = Total_Net_Sales)
 ) +
   # Geometry
   geom_col(fill = "steelblue") +
-  # Statistics: overall average reference line
+  # Statistics: per-category mean reference line
   geom_hline(
-    yintercept = seasonal_mean,
+    aes(yintercept = Mean_Sales),
     linetype = "dashed",
     color = "firebrick",
-    linewidth = 0.6
+    linewidth = 0.5
   ) +
+  # Facets
+  facet_wrap(~ Category, scales = "free_y") +
   # Aesthetics / labels
   scale_y_continuous(labels = comma) +
   labs(
-    title = "Net Sales by Calendar Month",
-    subtitle = "Total revenue pooled across all years — checking for seasonal patterns",
+    title = "Net Sales by Month, Faceted by Category",
+    subtitle = "Dashed line marks each category's average monthly revenue",
     x = "Month",
     y = "Net Sales (AED)"
   ) +
   # Theme
-  theme_minimal(base_size = 12)
+  theme_minimal(base_size = 11) +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1, size = 7),
+    strip.text = element_text(face = "bold", size = 9),
+    panel.spacing = unit(1, "lines")
+  )
 
 ggsave(
-  file.path(plots_dir, "net_sales_by_month.png"),
-  p_seasonality,
-  width = 9,
-  height = 5,
+  file.path(plots_dir, "seasonality_by_category.png"),
+  p_seasonality_by_category,
+  width = 12,
+  height = 8,
   dpi = 150
 )
 
