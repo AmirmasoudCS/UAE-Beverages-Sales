@@ -167,7 +167,7 @@ ggsave(
 # correlation matrix and earlier EDA findings suggested it would.
 
 rf_data <- df %>%
-  select(Category, Price, Quantity, `Discount_%`, Store_Type, Month) %>%
+  select(Category, Price, Quantity, Discount_Pct = `Discount_%`, Store_Type, Month) %>%
   mutate(Category = factor(Category))
 
 set.seed(42)
@@ -176,7 +176,7 @@ rf_train <- rf_data[rf_train_idx, ]
 rf_test <- rf_data[-rf_train_idx, ]
 
 rf_model <- randomForest(
-  Category ~ Price + Quantity + `Discount_%` + Store_Type + Month,
+  Category ~ Price + Quantity + Discount_Pct + Store_Type + Month,
   data = rf_train,
   ntree = 300,
   importance = TRUE
