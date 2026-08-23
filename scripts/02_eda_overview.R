@@ -122,7 +122,7 @@ ggsave(
 
 
 # ==============================================================================
-# Revenue Rank vs Quantity Rank 
+# Revenue vs Quantity Rank 
 # ==============================================================================
 
 rank_comparison <- category_sales %>%
@@ -134,48 +134,68 @@ rank_comparison <- category_sales %>%
   mutate(
     Revenue_Rank = rank(-Total_Net_Sales),
     Quantity_Rank = rank(-Total_Quantity)
-  ) %>%
+  )
+
+rank_long <- rank_comparison %>%
   select(Category, Revenue_Rank, Quantity_Rank) %>%
   pivot_longer(
-    cols = c(Revenue_Rank, Quantity_Rank),
+    cols = c(Quantity_Rank, Revenue_Rank),
     names_to = "Metric",
     values_to = "Rank"
   ) %>%
   mutate(
-    Metric = recode(Metric, Revenue_Rank = "Revenue", Quantity_Rank = "Quantity")
+    Metric = factor(
+      recode(Metric, Quantity_Rank = "Quantity", Revenue_Rank = "Revenue"),
+      levels = c("Quantity", "Revenue")
+    )
   )
 
 p_rank_slope <- ggplot(
-  rank_comparison,
+  rank_long,
   aes(x = Metric, y = Rank, group = Category, color = Category)
 ) +
   geom_line(linewidth = 1) +
   geom_point(size = 3) +
   geom_text(
-    data = rank_comparison %>% filter(Metric == "Quantity"),
+    data = rank_long %>% filter(Metric == "Quantity"),
     aes(label = Category),
-    hjust = -0.15,
+    hjust = 1.1,
+    size = 3.5,
+    show.legend = FALSE
+  ) +
+  geom_text(
+    data = rank_long %>% filter(Metric == "Revenue"),
+    aes(label = Category),
+    hjust = -0.1,
     size = 3.5,
     show.legend = FALSE
   ) +
   scale_y_reverse(breaks = 1:7) +
   labs(
     title = "Does Category Rank Differ by Revenue vs Quantity Sold?",
-    subtitle = "Rank 1 = highest. Steep lines show categories that over- or under-perform on price vs volume.",
+    subtitle = "Rank 1 = highest. Upward lines = earns more than volume alone predicts.",
     x = NULL,
     y = "Rank"
   ) +
   theme_minimal(base_size = 12) +
   theme(legend.position = "none") +
-  expand_limits(x = c(0.8, 2.4))
+  expand_limits(x = c(0.4, 2.6))
 
 ggsave(
   file.path(plots_dir, "revenue_vs_quantity_rank.png"),
   p_rank_slope,
-  width = 8,
+  width = 9,
   height = 7,
   dpi = 150
 )
+
+# Companion table
+rank_table <- rank_comparison %>%
+  mutate(Rank_Change = Quantity_Rank - Revenue_Rank) %>%
+  arrange(desc(Rank_Change)) %>%
+  select(Category, Quantity_Rank, Revenue_Rank, Rank_Change)
+
+print(rank_table)
 
 
 # ==============================================================================
