@@ -470,7 +470,80 @@ ggsave(
 )
 
 # ==============================================================================
-# 16. Final message
+# 16. Net Sales by Gender
+# ==============================================================================
+
+gender_stats <- df %>%
+  group_by(Gender) %>%
+  summarise(
+    Median_Net_Sales = median(Net_Sales, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+p_box_sales_gender <- ggplot(df, aes(x = Gender, y = Net_Sales)) +
+  geom_jitter(width = 0.2, alpha = 0.08, color = color_main, size = 0.6) +
+  geom_boxplot(
+    fill = color_main, alpha = 0.5, outlier.shape = NA, color = "black", width = 0.4
+  ) +
+  scale_y_log10(labels = dollar_format(prefix = "AED ")) +
+  labs(
+    title = "Net Sales per Transaction by Gender",
+    subtitle = "Log scale. Checking whether transaction value differs by gender",
+    x = "Gender",
+    y = "Net Sales"
+  )
+
+ggsave(
+  file.path(plots_dir, "net_sales_by_gender.png"),
+  p_box_sales_gender, width = 7, height = 5, dpi = 300
+)
+
+print(gender_stats)
+
+# ==============================================================================
+# 17. Category Mix by Gender
+# ==============================================================================
+
+# Proportion (not raw count) so the two genders are compared on equal footing
+# even if their overall transaction counts differ.
+
+category_gender <- df %>%
+  count(Gender, Category) %>%
+  group_by(Gender) %>%
+  mutate(Share = n / sum(n)) %>%
+  ungroup()
+
+category_order_gender <- category_gender %>%
+  group_by(Category) %>%
+  summarise(Total = sum(n), .groups = "drop") %>%
+  arrange(Total) %>%
+  pull(Category)
+
+category_gender <- category_gender %>%
+  mutate(Category = factor(Category, levels = category_order_gender))
+
+p_category_by_gender <- ggplot(
+  category_gender,
+  aes(x = Category, y = Share, fill = Gender)
+) +
+  geom_col(position = "dodge") +
+  coord_flip() +
+  scale_y_continuous(labels = percent_format(accuracy = 1)) +
+  scale_fill_manual(values = c(color_main, color_accent)) +
+  labs(
+    title = "Product Category Mix by Gender",
+    subtitle = "Share of each gender's transactions going to each category",
+    x = "Category",
+    y = "Share of Transactions"
+  )
+
+ggsave(
+  file.path(plots_dir, "category_mix_by_gender.png"),
+  p_category_by_gender, width = 9, height = 6, dpi = 300
+)
+
+# ==============================================================================
+# 18. Final message
 # ==============================================================================
 
 message("EDA overview complete: plots saved to ", plots_dir)
