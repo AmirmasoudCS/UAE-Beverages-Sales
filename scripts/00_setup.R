@@ -1,11 +1,12 @@
-
 # --- Packages -----------------------------------------------------
 required_packages <- c(
   "tidyverse",      # dplyr, ggplot2, tidyr, readr, etc.
   "lubridate",      # date handling
   "scales",         # axis/label formatting (currency, percent, etc.)
   "plotly",         # interactive plots
-  "shiny"           # build the dashboard
+  "shiny",          # build the dashboard
+  "ggrepel",        # non-overlapping scatter labels (clustering plot)
+  "nnet"            # multinomial logistic regression (classification model)
 )
 
 installed <- rownames(installed.packages())
