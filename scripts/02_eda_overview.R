@@ -414,27 +414,56 @@ ggsave(
 # 11. Rating Distribution
 # ==============================================================================
 
+median_rating <- median(df$Rating, na.rm = TRUE)
+
 p_rating_distribution <- ggplot(
   df,
   aes(x = Rating)
 ) +
-  geom_bar() +
-  scale_x_continuous(
-    breaks = 1:5
+  # Geometry: proper binning for continuous decimal data
+  geom_histogram(
+    bins = 25,
+    fill = "steelblue",
+    color = "white"
   ) +
+  # Statistics: median reference line
+  geom_vline(
+    xintercept = median_rating,
+    linetype = "dashed",
+    color = "firebrick",
+    linewidth = 0.7
+  ) +
+  annotate(
+    "text",
+    x = median_rating,
+    y = Inf,
+    label = paste0("Median: ", round(median_rating, 2)),
+    color = "firebrick",
+    vjust = 1.5,
+    hjust = -0.1,
+    size = 3.5
+  ) +
+  # Coordinates
+  scale_x_continuous(
+    breaks = 1:5,
+    limits = c(1, 5)
+  ) +
+  # Aesthetics / labels
   labs(
     title = "Distribution of Customer Ratings",
-    x = "Rating",
+    subtitle = "Ratings show no meaningful skew — roughly uniform across the 1-5 scale",
+    x = "Rating (out of 5)",
     y = "Number of Transactions"
   ) +
-  theme_minimal()
+  # Theme
+  theme_minimal(base_size = 12)
 
 ggsave(
   file.path(plots_dir, "distribution_rating.png"),
   p_rating_distribution,
-  width = 7,
+  width = 8,
   height = 5,
-  dpi = 300
+  dpi = 150
 )
 
 
