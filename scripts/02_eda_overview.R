@@ -462,6 +462,103 @@ ggsave(
 )
 
 
+# ==============================================================================
+# 11. Net Sales Trend Over Time
+# ==============================================================================
+
+monthly_sales <- df %>%
+  group_by(Year_Month) %>%
+  summarise(
+    Total_Net_Sales = sum(Net_Sales, na.rm = TRUE),
+    Transactions = n(),
+    .groups = "drop"
+  )
+
+p_trend_monthly <- ggplot(
+  monthly_sales,
+  aes(x = Year_Month, y = Total_Net_Sales)
+) +
+  # Geometry
+  geom_line(color = "steelblue", linewidth = 0.8) +
+  geom_point(color = "steelblue", size = 1.5) +
+  # Statistics: smoothed trend to cut through month-to-month noise
+  geom_smooth(
+    method = "loess",
+    se = FALSE,
+    color = "firebrick",
+    linewidth = 0.8,
+    linetype = "dashed"
+  ) +
+  # Coordinates
+  scale_x_date(date_breaks = "6 months", date_labels = "%b %Y") +
+  scale_y_continuous(labels = comma) +
+  # Aesthetics / labels
+  labs(
+    title = "Net Sales Trend Over Time",
+    subtitle = "Monthly total revenue after discounts, with smoothed trend line",
+    x = NULL,
+    y = "Net Sales (AED)"
+  ) +
+  # Theme
+  theme_minimal(base_size = 12) +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1)
+  )
+
+ggsave(
+  file.path(plots_dir, "net_sales_trend_monthly.png"),
+  p_trend_monthly,
+  width = 11,
+  height = 6,
+  dpi = 150
+)
+
+
+# ==============================================================================
+# 12. Seasonality — Net Sales by Calendar Month (pooled across years)
+# ==============================================================================
+
+seasonal_sales <- df %>%
+  group_by(Month) %>%
+  summarise(
+    Avg_Net_Sales = mean(Net_Sales, na.rm = TRUE),
+    Total_Net_Sales = sum(Net_Sales, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+seasonal_mean <- mean(seasonal_sales$Total_Net_Sales)
+
+p_seasonality <- ggplot(
+  seasonal_sales,
+  aes(x = Month, y = Total_Net_Sales)
+) +
+  # Geometry
+  geom_col(fill = "steelblue") +
+  # Statistics: overall average reference line
+  geom_hline(
+    yintercept = seasonal_mean,
+    linetype = "dashed",
+    color = "firebrick",
+    linewidth = 0.6
+  ) +
+  # Aesthetics / labels
+  scale_y_continuous(labels = comma) +
+  labs(
+    title = "Net Sales by Calendar Month",
+    subtitle = "Total revenue pooled across all years — checking for seasonal patterns",
+    x = "Month",
+    y = "Net Sales (AED)"
+  ) +
+  # Theme
+  theme_minimal(base_size = 12)
+
+ggsave(
+  file.path(plots_dir, "net_sales_by_month.png"),
+  p_seasonality,
+  width = 9,
+  height = 5,
+  dpi = 150
+)
 
 
 # ==============================================================================
