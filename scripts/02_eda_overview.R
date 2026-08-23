@@ -125,38 +125,28 @@ ggsave(
 # 5. Quantity Sold by Category
 # ==============================================================================
 
-category_quantity <- df %>%
-  group_by(Category) %>%
-  summarise(
-    Total_Quantity = sum(Quantity, na.rm = TRUE),
-    Avg_Quantity = mean(Quantity, na.rm = TRUE),
-    .groups = "drop"
-  ) %>%
-  arrange(Total_Quantity)
-
-p_category_quantity <- ggplot(
-  category_quantity,
-  aes(
+p_category_quantity <- category_quantity %>%
+  ggplot(aes(
     x = reorder(Category, Total_Quantity),
     y = Total_Quantity
-  )
-) +
-  geom_col() +
+  )) +
+  geom_col(fill = "darkorange") +
   coord_flip() +
   scale_y_continuous(labels = comma) +
   labs(
     title = "Quantity Sold by Product Category",
+    subtitle = "Compare to Net Sales ranking — volume leaders aren't always revenue leaders",
     x = "Category",
     y = "Quantity (units)"
   ) +
-  theme_minimal()
+  theme_minimal(base_size = 12)
 
 ggsave(
   file.path(plots_dir, "quantity_by_category.png"),
   p_category_quantity,
   width = 8,
   height = 5,
-  dpi = 300
+  dpi = 150
 )
 
 
