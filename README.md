@@ -1,6 +1,6 @@
 # UAE Beverage Sales Analysis
 
-<div>
+<div align="center">
     <img src="outputs/banner.svg">
     <p><em>Generated using Claude.</em></p>
 </div>
