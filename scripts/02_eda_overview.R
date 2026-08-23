@@ -122,30 +122,58 @@ ggsave(
 
 
 # ==============================================================================
-# 5. Quantity Sold by Category
+# Revenue Rank vs Quantity Rank 
 # ==============================================================================
 
-p_category_quantity <- category_quantity %>%
-  ggplot(aes(
-    x = reorder(Category, Total_Quantity),
-    y = Total_Quantity
-  )) +
-  geom_col(fill = "darkorange") +
-  coord_flip() +
-  scale_y_continuous(labels = comma) +
-  labs(
-    title = "Quantity Sold by Product Category",
-    subtitle = "Compare to Net Sales ranking — volume leaders aren't always revenue leaders",
-    x = "Category",
-    y = "Quantity (units)"
+rank_comparison <- category_sales %>%
+  select(Category, Total_Net_Sales) %>%
+  left_join(
+    category_quantity %>% select(Category, Total_Quantity),
+    by = "Category"
+  ) %>%
+  mutate(
+    Revenue_Rank = rank(-Total_Net_Sales),
+    Quantity_Rank = rank(-Total_Quantity)
+  ) %>%
+  select(Category, Revenue_Rank, Quantity_Rank) %>%
+  pivot_longer(
+    cols = c(Revenue_Rank, Quantity_Rank),
+    names_to = "Metric",
+    values_to = "Rank"
+  ) %>%
+  mutate(
+    Metric = recode(Metric, Revenue_Rank = "Revenue", Quantity_Rank = "Quantity")
+  )
+
+p_rank_slope <- ggplot(
+  rank_comparison,
+  aes(x = Metric, y = Rank, group = Category, color = Category)
+) +
+  geom_line(linewidth = 1) +
+  geom_point(size = 3) +
+  geom_text(
+    data = rank_comparison %>% filter(Metric == "Quantity"),
+    aes(label = Category),
+    hjust = -0.15,
+    size = 3.5,
+    show.legend = FALSE
   ) +
-  theme_minimal(base_size = 12)
+  scale_y_reverse(breaks = 1:7) +
+  labs(
+    title = "Does Category Rank Differ by Revenue vs Quantity Sold?",
+    subtitle = "Rank 1 = highest. Steep lines show categories that over- or under-perform on price vs volume.",
+    x = NULL,
+    y = "Rank"
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(legend.position = "none") +
+  expand_limits(x = c(0.8, 2.4))
 
 ggsave(
-  file.path(plots_dir, "quantity_by_category.png"),
-  p_category_quantity,
+  file.path(plots_dir, "revenue_vs_quantity_rank.png"),
+  p_rank_slope,
   width = 8,
-  height = 5,
+  height = 7,
   dpi = 150
 )
 
