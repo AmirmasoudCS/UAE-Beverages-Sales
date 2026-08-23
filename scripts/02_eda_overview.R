@@ -202,43 +202,31 @@ ggsave(
 
 
 # ==============================================================================
-# 7. Net Sales by City
+# 7. Net Sales by City 
 # ==============================================================================
 
-city_sales <- df %>%
-  group_by(City) %>%
-  summarise(
-    Transactions = n(),
-    Total_Net_Sales = sum(Net_Sales, na.rm = TRUE),
-    Avg_Net_Sales = mean(Net_Sales, na.rm = TRUE),
-    .groups = "drop"
-  ) %>%
-  arrange(Total_Net_Sales)
-
-p_city_sales <- ggplot(
-  city_sales,
-  aes(
+p_city_sales <- city_sales %>%
+  ggplot(aes(
     x = reorder(City, Total_Net_Sales),
     y = Total_Net_Sales
-  )
-) +
-  geom_col() +
+  )) +
+  geom_col(fill = "steelblue") +
   coord_flip() +
   scale_y_continuous(labels = comma) +
   labs(
     title = "Net Sales by City",
-    subtitle = "Total revenue after discounts",
+    subtitle = "Revenue is fairly evenly distributed across cities",
     x = "City",
     y = "Net Sales (AED)"
   ) +
-  theme_minimal()
+  theme_minimal(base_size = 12)
 
 ggsave(
   file.path(plots_dir, "net_sales_by_city.png"),
   p_city_sales,
   width = 8,
   height = 5,
-  dpi = 300
+  dpi = 150
 )
 
 
