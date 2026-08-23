@@ -89,28 +89,19 @@ print(gender_counts)
 
 
 # ==============================================================================
-# 4. Sales by Category
+# 4. Net Sales by Category 
 # ==============================================================================
 
-category_sales <- df %>%
-  group_by(Category) %>%
-  summarise(
-    Transactions = n(),
-    Total_Net_Sales = sum(Net_Sales, na.rm = TRUE),
-    Avg_Net_Sales = mean(Net_Sales, na.rm = TRUE),
-    .groups = "drop"
-  ) %>%
-  arrange(Total_Net_Sales)
-
-p_category_sales <- ggplot(
-  category_sales,
-  aes(
+p_category_sales <- category_sales %>%
+  ggplot(aes(
     x = reorder(Category, Total_Net_Sales),
     y = Total_Net_Sales
-  )
-) +
-  geom_col() +
+  )) +
+  # Geometry
+  geom_col(fill = "steelblue") +
+  # Coordinates
   coord_flip() +
+  # Aesthetics / labels
   scale_y_continuous(labels = comma) +
   labs(
     title = "Net Sales by Product Category",
@@ -118,14 +109,15 @@ p_category_sales <- ggplot(
     x = "Category",
     y = "Net Sales (AED)"
   ) +
-  theme_minimal()
+  # Theme
+  theme_minimal(base_size = 12)
 
 ggsave(
   file.path(plots_dir, "net_sales_by_category.png"),
   p_category_sales,
   width = 8,
   height = 5,
-  dpi = 300
+  dpi = 150
 )
 
 
