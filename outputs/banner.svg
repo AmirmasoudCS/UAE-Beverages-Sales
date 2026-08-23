@@ -1,0 +1,65 @@
+<svg viewBox="0 0 1200 300" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="duneBack" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#D9A441"/>
+      <stop offset="100%" stop-color="#B87F2C"/>
+    </linearGradient>
+    <linearGradient id="duneFront" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#B5651D"/>
+      <stop offset="100%" stop-color="#8F4E17"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1200" height="300" fill="#F6EFE1"/>
+
+  <!-- sun -->
+  <g>
+    <circle cx="1080" cy="62" r="22" fill="#D9A441"/>
+    <g stroke="#D9A441" stroke-width="3" stroke-linecap="round">
+      <line x1="1080" y1="20" x2="1080" y2="8"/>
+      <line x1="1080" y1="104" x2="1080" y2="116"/>
+      <line x1="1038" y1="62" x2="1026" y2="62"/>
+      <line x1="1122" y1="62" x2="1134" y2="62"/>
+      <line x1="1050" y1="32" x2="1042" y2="24"/>
+      <line x1="1110" y1="92" x2="1118" y2="100"/>
+      <line x1="1110" y1="32" x2="1118" y2="24"/>
+      <line x1="1050" y1="92" x2="1042" y2="100"/>
+    </g>
+  </g>
+
+  <!-- back dune -->
+  <path d="M0,225 C220,195 400,215 620,200 C840,185 1020,210 1200,195 L1200,300 L0,300 Z" fill="url(#duneBack)" opacity="0.55"/>
+  <!-- front dune -->
+  <path d="M0,255 C230,230 430,250 660,240 C880,230 1040,250 1200,238 L1200,300 L0,300 Z" fill="url(#duneFront)" opacity="0.85"/>
+
+  <!-- cafe building -->
+  <g transform="translate(70,175)">
+    <!-- main structure -->
+    <rect x="0" y="30" width="90" height="60" fill="#8F4E17"/>
+    <!-- arched doorway -->
+    <path d="M36,90 L36,58 A10,10 0 0 1 56,58 L56,90 Z" fill="#F6EFE1" opacity="0.85"/>
+    <!-- arched window -->
+    <path d="M8,68 L8,52 A7,7 0 0 1 22,52 L22,68 Z" fill="#F6EFE1" opacity="0.7"/>
+    <path d="M68,68 L68,52 A7,7 0 0 1 82,52 L82,68 Z" fill="#F6EFE1" opacity="0.7"/>
+    <!-- awning -->
+    <path d="M-6,30 L96,30 L88,12 L2,12 Z" fill="#B5651D"/>
+    <g fill="#F6EFE1" opacity="0.9">
+      <path d="M-6,30 L4,30 L8,12 L0,12 Z"/>
+      <path d="M14,30 L24,30 L26,12 L18,12 Z"/>
+      <path d="M34,30 L44,30 L44,12 L36,12 Z"/>
+      <path d="M54,30 L64,30 L62,12 L54,12 Z"/>
+      <path d="M74,30 L84,30 L80,12 L72,12 Z"/>
+    </g>
+    <!-- sign with dallah -->
+    <rect x="30" y="-16" width="30" height="22" rx="3" fill="#3A2415"/>
+    <g transform="translate(37,-14) scale(0.28)">
+      <path d="M18,70 C18,50 20,40 26,32 C22,24 24,14 32,10 L32,4 L40,4 L40,10 C48,14 50,24 46,32 C52,40 54,50 54,70 Z" fill="#D9A441"/>
+      <path d="M46,34 C58,30 66,34 66,42 C66,50 58,54 48,52" fill="none" stroke="#D9A441" stroke-width="6" stroke-linecap="round"/>
+      <circle cx="36" cy="2" r="5" fill="#D9A441"/>
+      <rect x="14" y="70" width="44" height="6" rx="3" fill="#D9A441"/>
+    </g>
+  </g>
+
+  <!-- text -->
+  <text x="600" y="140" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="46" font-weight="700" fill="#3A2415">UAE Beverage Sales Analysis</text>
+</svg>

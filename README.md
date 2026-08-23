@@ -1,5 +1,11 @@
 # UAE Beverage Sales Analysis
 
+<div>
+    <img src="outputs/banner.svg">
+    <p><em>Generated using Claude.</em></p>
+</div>
+
+
 An end to end analysis of a UAE beverage sales dataset in R, covering data cleaning, exploratory analysis, time trend analysis, machine learning (clustering, classification, and forecasting), and anomaly detection.
 
 The dataset was gathered from Kaggle: [Sales Dataset UAE Beverages](https://www.kaggle.com/datasets/ajitjha01/sales-dataset-uae-beverages), by Ajit Jha.
