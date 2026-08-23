@@ -515,13 +515,12 @@ ggsave(
 
 
 # ==============================================================================
-# 12b. Seasonality by Category — visually refactored
+# 12b. Seasonality by Category — top 3 months per category highlighted
 # ==============================================================================
 
 seasonal_category <- df %>%
   group_by(Category, Month) %>%
-  summarise(Total_Net_Sales = sum(Net_Sales, na.rm = TRUE), .groups = "drop") %>%
-  mutate(Is_Summer = Month %in% c("Jul", "Aug", "Sep"))
+  summarise(Total_Net_Sales = sum(Net_Sales, na.rm = TRUE), .groups = "drop")
 
 category_month_means <- seasonal_category %>%
   group_by(Category) %>%
@@ -533,37 +532,35 @@ category_month_means <- seasonal_category %>%
 
 seasonal_category <- seasonal_category %>%
   left_join(category_month_means, by = "Category") %>%
+  group_by(Category) %>%
+  mutate(Is_Top3 = rank(-Total_Net_Sales) <= 3) %>%
+  ungroup() %>%
   mutate(Category = fct_reorder(Category, -Category_Total))
 
 p_seasonality_by_category <- ggplot(
   seasonal_category,
-  aes(x = Month, y = Total_Net_Sales, fill = Is_Summer)
+  aes(x = Month, y = Total_Net_Sales, fill = Is_Top3)
 ) +
-  # Geometry
   geom_col() +
-  # Statistics: per-category mean reference line
   geom_hline(
     aes(yintercept = Mean_Sales),
     linetype = "dashed",
     color = "grey30",
     linewidth = 0.5
   ) +
-  # Facets, ordered by total category revenue
   facet_wrap(~ Category, scales = "free_y") +
-  # Aesthetics / labels / color scale
   scale_fill_manual(
     values = c(`TRUE` = "#e07b39", `FALSE` = "#a8c5dc"),
-    labels = c(`TRUE` = "Jul-Sep", `FALSE` = "Other months"),
+    labels = c(`TRUE` = "Top 3 months", `FALSE` = "Other months"),
     name = NULL
   ) +
   scale_y_continuous(labels = comma) +
   labs(
     title = "Net Sales by Month, Faceted by Category",
-    subtitle = "Summer months (Jul-Sep) highlighted — Camel milk and Masala chai show a clear seasonal lift",
+    subtitle = "Each category's own top 3 months highlighted — peak timing differs by category",
     x = NULL,
     y = "Net Sales (AED)"
   ) +
-  # Theme
   theme_minimal(base_size = 11) +
   theme(
     axis.text.x = element_text(angle = 45, hjust = 1, size = 7.5),
