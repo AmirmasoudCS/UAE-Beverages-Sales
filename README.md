@@ -54,7 +54,7 @@ Camel milk and Arabic coffee generate substantially more revenue than the other 
   <p><em>Price distribution per category, with individual transactions shown as points beneath each box.</em></p>
 </div>
 
-Each category occupies a distinct but fairly flat price range rather than clustering around one typical price. Camel milk (AED 8 to 20) and Arabic coffee (AED 4 to 15) sit well above the other five categories, which mostly overlap in the AED 2 to 8 range. This is the chart that first suggested a two tier price structure, which later got confirmed formally through clustering. Code: [`scripts/02_eda_overview.R`](scripts/02_eda_overview.R), section 10.
+Each category occupies a distinct but fairly flat price range rather than clustering around one typical price. Camel milk (roughly AED 8 to 20) and Arabic coffee (roughly AED 4 to 15) sit well above the other five categories, whose boxes mostly overlap in the AED 2 to 8 range. This is the chart that first suggested a two tier price structure, which later got confirmed formally through clustering. Code: [`scripts/02_eda_overview.R`](scripts/02_eda_overview.R), section 10.
 
 </br>
 <div align="center">
