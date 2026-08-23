@@ -411,46 +411,33 @@ ggsave(
 
 
 # ==============================================================================
-# 11. Rating Distribution — faceted by Category
+# 11. Transactions by Category, faceted by Rating tier
 # ==============================================================================
 
-rating_medians <- df %>%
-  group_by(Category) %>%
-  summarise(Median_Rating = median(Rating, na.rm = TRUE), .groups = "drop")
+df_rating_tier <- df %>%
+  mutate(Rating_Tier = paste0(round(Rating), " Star"))
 
-p_rating_faceted <- ggplot(
-  df,
-  aes(x = Rating)
+category_by_rating <- df_rating_tier %>%
+  count(Rating_Tier, Category)
+
+p_rating_by_category <- ggplot(
+  category_by_rating,
+  aes(
+    x = reorder(Category, n),
+    y = n
+  )
 ) +
-  # Geometry: fixed binwidth matching data resolution (0.1)
-  geom_histogram(
-    binwidth = 0.1,
-    fill = "steelblue",
-    color = "white"
-  ) +
-  # Statistics: per-category median line
-  geom_vline(
-    data = rating_medians,
-    aes(xintercept = Median_Rating),
-    linetype = "dashed",
-    color = "firebrick",
-    linewidth = 0.6
-  ) +
-  # Facets
-  facet_wrap(
-    ~ Category,
-    scales = "free_y"
-  ) +
+  # Geometry
+  geom_col(fill = "steelblue") +
   # Coordinates
-  scale_x_continuous(
-    breaks = 1:5,
-    limits = c(1, 5)
-  ) +
+  coord_flip() +
+  # Facets
+  facet_wrap(~ Rating_Tier, ncol = 3) +
   # Aesthetics / labels
   labs(
-    title = "Distribution of Customer Ratings by Category",
-    subtitle = "Dashed line marks each category's median rating",
-    x = "Rating (out of 5)",
+    title = "Number of Transactions by Category, Faceted by Rating Tier",
+    subtitle = "Rating rounded to nearest star",
+    x = "Category",
     y = "Number of Transactions"
   ) +
   # Theme
@@ -461,10 +448,10 @@ p_rating_faceted <- ggplot(
   )
 
 ggsave(
-  file.path(plots_dir, "distribution_rating_by_category.png"),
-  p_rating_faceted,
+  file.path(plots_dir, "transactions_by_category_by_rating.png"),
+  p_rating_by_category,
   width = 11,
-  height = 8,
+  height = 7,
   dpi = 150
 )
 
