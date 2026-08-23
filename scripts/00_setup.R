@@ -6,7 +6,9 @@ required_packages <- c(
   "plotly",         # interactive plots
   "shiny",          # build the dashboard
   "ggrepel",        # non-overlapping scatter labels (clustering plot)
-  "nnet"            # multinomial logistic regression (classification model)
+  "nnet",           # multinomial logistic regression (classification model)
+  "randomForest",   # random forest classifier
+  "forecast"        # ARIMA time series forecasting
 )
 
 installed <- rownames(installed.packages())
