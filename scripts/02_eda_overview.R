@@ -161,43 +161,51 @@ ggsave(
 
 
 # ==============================================================================
-# 6. Net Sales by Store Type
+# 6. Net Sales by Store Type 
 # ==============================================================================
 
-store_sales <- df %>%
-  group_by(Store_Type) %>%
+store_stats <- store_sales %>%
   summarise(
-    Transactions = n(),
-    Total_Net_Sales = sum(Net_Sales, na.rm = TRUE),
-    Avg_Net_Sales = mean(Net_Sales, na.rm = TRUE),
-    .groups = "drop"
-  ) %>%
-  arrange(Total_Net_Sales)
+    Mean_Sales = mean(Total_Net_Sales),
+    Min_Sales = min(Total_Net_Sales),
+    Max_Sales = max(Total_Net_Sales),
+    CV_Pct = sd(Total_Net_Sales) / mean(Total_Net_Sales) * 100
+  )
 
-p_store_sales <- ggplot(
-  store_sales,
-  aes(
+store_spread_label <- paste0(
+  "Range: AED ", comma(round(store_stats$Min_Sales, 0)),
+  " – ", comma(round(store_stats$Max_Sales, 0)),
+  "  (", round(store_stats$CV_Pct, 1), "% variation)"
+)
+
+p_store_sales <- store_sales %>%
+  ggplot(aes(
     x = reorder(Store_Type, Total_Net_Sales),
     y = Total_Net_Sales
-  )
-) +
-  geom_col() +
+  )) +
+  geom_col(fill = "steelblue") +
+  geom_hline(
+    yintercept = store_stats$Mean_Sales,
+    linetype = "dashed",
+    color = "firebrick",
+    linewidth = 0.6
+  ) +
   coord_flip() +
   scale_y_continuous(labels = comma) +
   labs(
     title = "Net Sales by Store Type",
-    subtitle = "Total revenue after discounts",
+    subtitle = paste0("Store types perform almost identically — ", store_spread_label),
     x = "Store Type",
     y = "Net Sales (AED)"
   ) +
-  theme_minimal()
+  theme_minimal(base_size = 12)
 
 ggsave(
   file.path(plots_dir, "net_sales_by_store_type.png"),
   p_store_sales,
-  width = 8,
+  width = 9,
   height = 5,
-  dpi = 300
+  dpi = 150
 )
 
 
