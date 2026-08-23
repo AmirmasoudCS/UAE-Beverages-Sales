@@ -515,52 +515,62 @@ ggsave(
 
 
 # ==============================================================================
-# 12b. Seasonality by Category — faceted
+# 12b. Seasonality by Category — visually refactored
 # ==============================================================================
 
 seasonal_category <- df %>%
   group_by(Category, Month) %>%
-  summarise(
-    Total_Net_Sales = sum(Net_Sales, na.rm = TRUE),
-    .groups = "drop"
-  )
+  summarise(Total_Net_Sales = sum(Net_Sales, na.rm = TRUE), .groups = "drop") %>%
+  mutate(Is_Summer = Month %in% c("Jul", "Aug", "Sep"))
 
 category_month_means <- seasonal_category %>%
   group_by(Category) %>%
-  summarise(Mean_Sales = mean(Total_Net_Sales), .groups = "drop")
+  summarise(
+    Mean_Sales = mean(Total_Net_Sales),
+    Category_Total = sum(Total_Net_Sales),
+    .groups = "drop"
+  )
 
 seasonal_category <- seasonal_category %>%
-  left_join(category_month_means, by = "Category")
+  left_join(category_month_means, by = "Category") %>%
+  mutate(Category = fct_reorder(Category, -Category_Total))
 
 p_seasonality_by_category <- ggplot(
   seasonal_category,
-  aes(x = Month, y = Total_Net_Sales)
+  aes(x = Month, y = Total_Net_Sales, fill = Is_Summer)
 ) +
   # Geometry
-  geom_col(fill = "steelblue") +
+  geom_col() +
   # Statistics: per-category mean reference line
   geom_hline(
     aes(yintercept = Mean_Sales),
     linetype = "dashed",
-    color = "firebrick",
+    color = "grey30",
     linewidth = 0.5
   ) +
-  # Facets
+  # Facets, ordered by total category revenue
   facet_wrap(~ Category, scales = "free_y") +
-  # Aesthetics / labels
+  # Aesthetics / labels / color scale
+  scale_fill_manual(
+    values = c(`TRUE` = "#e07b39", `FALSE` = "#a8c5dc"),
+    labels = c(`TRUE` = "Jul-Sep", `FALSE` = "Other months"),
+    name = NULL
+  ) +
   scale_y_continuous(labels = comma) +
   labs(
     title = "Net Sales by Month, Faceted by Category",
-    subtitle = "Dashed line marks each category's average monthly revenue",
-    x = "Month",
+    subtitle = "Summer months (Jul-Sep) highlighted — Camel milk and Masala chai show a clear seasonal lift",
+    x = NULL,
     y = "Net Sales (AED)"
   ) +
   # Theme
   theme_minimal(base_size = 11) +
   theme(
-    axis.text.x = element_text(angle = 45, hjust = 1, size = 7),
-    strip.text = element_text(face = "bold", size = 9),
-    panel.spacing = unit(1, "lines")
+    axis.text.x = element_text(angle = 45, hjust = 1, size = 7.5),
+    strip.text = element_text(face = "bold", size = 9.5),
+    panel.spacing = unit(1.1, "lines"),
+    legend.position = "top",
+    legend.margin = margin(b = 5)
   )
 
 ggsave(
