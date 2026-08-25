@@ -51,8 +51,8 @@
       <path d="M74,30 L84,30 L80,12 L72,12 Z"/>
     </g>
     <!-- sign with dallah -->
-    <rect x="30" y="-16" width="30" height="22" rx="3" fill="#3A2415"/>
-    <g transform="translate(37,-14) scale(0.28)">
+    <rect x="23" y="-28" width="44" height="34" rx="4" fill="#3A2415"/>
+    <g transform="translate(31,-24) scale(0.34)">
       <path d="M18,70 C18,50 20,40 26,32 C22,24 24,14 32,10 L32,4 L40,4 L40,10 C48,14 50,24 46,32 C52,40 54,50 54,70 Z" fill="#D9A441"/>
       <path d="M46,34 C58,30 66,34 66,42 C66,50 58,54 48,52" fill="none" stroke="#D9A441" stroke-width="6" stroke-linecap="round"/>
       <circle cx="36" cy="2" r="5" fill="#D9A441"/>
